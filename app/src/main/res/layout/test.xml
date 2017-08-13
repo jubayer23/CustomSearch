@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="fill_horizontal">
+
+    <RelativeLayout
+        android:id="@+id/search_parent"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp">
+
+        <com.creative.customsearch.DelayAutoCompleteTextView
+            android:id="@+id/menu_search"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/loading_indicator"
+            android:layout_alignParentLeft="true"
+            android:dropDownAnchor="@+id/search_parent"
+            android:dropDownHorizontalOffset="-506.0dip"
+            android:dropDownVerticalOffset="16.0dip"
+            android:dropDownWidth="fill_parent"
+            android:hint="Search"
+            android:imeOptions="actionSearch|flagNoExtractUi"
+            android:inputType="textCapSentences"
+            android:paddingRight="2dp" />
+
+        <ProgressBar
+            android:id="@+id/loading_indicator"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="5dp"
+            android:visibility="invisible" />
+    </RelativeLayout>
+</merge>
