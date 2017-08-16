@@ -1,8 +1,10 @@
 package com.creative.customsearch;
 
 import android.annotation.TargetApi;
+import android.app.SearchableInfo;
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,27 +17,31 @@ import android.widget.RelativeLayout;
  * Created by jubayer on 8/13/2017.
  */
 
-public class mSearchView extends RelativeLayout {
+public class MSearchView extends RelativeLayout {
     CompositeOnItemEventListener mCompositeOnItemEventListener;
     Context mContext;
-    public mSearchView(Context context) {
+    public MSearchView(Context context) {
         super(context);
     }
 
-    public mSearchView(Context context, AttributeSet attrs) {
+    public MSearchView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
 
-    public mSearchView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MSearchView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public mSearchView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public MSearchView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init(context);
+    }
+
+    public void setSearchableInfo(SearchableInfo searchable) {
+        throw new RuntimeException("Stub!");
     }
 
     private void init(Context paramContext)
