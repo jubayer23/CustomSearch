@@ -1,28 +1,63 @@
 package com.creative.customsearch;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.app.SearchManager;
 import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.SystemClock;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+import java.lang.reflect.Field;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private MSearchView mSearchView;
+
+    Boolean toolbarHomeButtonAnimating = false;
+
+    Menu menu;
+
+    Toolbar toolbar;
+
+    DrawerLayout drawer;
+    ActionBarDrawerToggle mDrawerToggle;
+
+    LinearLayout searchContainer;
+    EditText toolbarSearchView;
+    ImageView searchClearButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-         setSupportActionBar(toolbar);
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        initDrawer();
 
         final DelayAutoCompleteTextView bookTitle = (DelayAutoCompleteTextView) findViewById(R.id.et_book_title);
         bookTitle.setThreshold(3);
@@ -36,18 +71,164 @@ public class MainActivity extends AppCompatActivity {
                 bookTitle.setText(book.getTitle());
             }
         });
+
+
+        searchContainer = (LinearLayout) findViewById(R.id.search_container);
+        toolbarSearchView = (EditText) findViewById(R.id.search_view);
+        searchClearButton = (ImageView) findViewById(R.id.search_clear);
+
+
+        // Clear search text when clear button is tapped
+        searchClearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toolbarSearchView.setText("");
+            }
+        });
+
+        // Hide the search view
+        searchContainer.setVisibility(View.GONE);
+
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // toolbarHomeButtonAnimating is a boolean that is initialized as false. It's used to stop the user pressing the home button while it is animating and breaking things.
+                if (!toolbarHomeButtonAnimating) {
+
+                }
+
+                if (drawer.isDrawerOpen(findViewById(R.id.nav_view)))
+                    drawer.closeDrawer(findViewById(R.id.nav_view));
+                else
+                    drawer.openDrawer(findViewById(R.id.nav_view));
+            }
+        });
+
+
+        searchClearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                displaySearchView(false);
+            }
+        });
+
+
+    }
+
+    public void displaySearchView(boolean visible) {
+        if (visible) {
+            // Stops user from being able to open drawer while searching
+            // mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+            // Hide search button, display EditText
+            menu.findItem(R.id.action_search).setVisible(false);
+            searchContainer.setVisibility(View.VISIBLE);
+
+            // Animate the home icon to the back arrow
+           toggleActionBarIcon(ActionDrawableState.ARROW, mDrawerToggle, true);
+
+            // Shift focus to the search EditText
+            toolbarSearchView.requestFocus();
+
+            // Pop up the soft keyboard
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    toolbarSearchView.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 0, 0, 0));
+                    toolbarSearchView.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 0, 0, 0));
+                }
+            }, 200);
+        } else {
+            // Allows user to open drawer again
+            //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+
+            // Hide the EditText and put the search button back on the Toolbar.
+            // This sometimes fails when it isn't postDelayed(), don't know why.
+            toolbarSearchView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    toolbarSearchView.setText("");
+                    searchContainer.setVisibility(View.GONE);
+                    menu.findItem(R.id.action_search).setVisible(true);
+                }
+            }, 200);
+
+            // Turn the home button back into a drawer icon
+            toggleActionBarIcon(ActionDrawableState.BURGER, mDrawerToggle, true);
+
+            // Hide the keyboard because the search box has been hidden
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(toolbarSearchView.getWindowToken(), 0);
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
+    }
+
+    private enum ActionDrawableState {
+        BURGER, ARROW
+    }
+
+    /**
+     * Modified version of this, https://stackoverflow.com/a/26836272/1692770<br>
+     * I flipped the start offset around for the animations because it seemed like it was the wrong way around to me.<br>
+     * I also added a listener to the animation so I can find out when the home button has finished rotating.
+     */
+    private void toggleActionBarIcon(final ActionDrawableState state, final ActionBarDrawerToggle toggle, boolean animate) {
+        if (animate) {
+            float start = state == ActionDrawableState.BURGER ? 1.0f : 0f;
+            float end = Math.abs(start - 1);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                ValueAnimator offsetAnimator = ValueAnimator.ofFloat(start, end);
+                offsetAnimator.setDuration(300);
+                offsetAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+                offsetAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        float offset = (Float) animation.getAnimatedValue();
+                        toggle.onDrawerSlide(null, offset);
+                    }
+                });
+                offsetAnimator.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        toolbarHomeButtonAnimating = false;
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
+                toolbarHomeButtonAnimating = true;
+                offsetAnimator.start();
+            }
+        } else {
+            if (state == ActionDrawableState.BURGER) {
+                toggle.onDrawerClosed(null);
+            } else {
+                toggle.onDrawerOpened(null);
+            }
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-
-        // mSearchView = (MSearchView) menu.findItem(R.id.action_search).getActionView();
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        //searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
 
 
         return super.onCreateOptionsMenu(menu);
@@ -62,9 +243,22 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_search) {
+            displaySearchView(true);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    private void initDrawer() {
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 }
