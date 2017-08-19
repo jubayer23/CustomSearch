@@ -23,6 +23,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
@@ -43,9 +44,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawer;
     ActionBarDrawerToggle mDrawerToggle;
 
-    LinearLayout searchContainer;
-    EditText toolbarSearchView;
-    ImageView searchClearButton;
+    //LinearLayout searchContainer;
+    FrameLayout searchContainer;
+    //EditText toolbarSearchView;
+    //ImageView searchClearButton;
+
+     DelayAutoCompleteTextView bookTitle2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,18 +77,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
 
-        searchContainer = (LinearLayout) findViewById(R.id.search_container);
-        toolbarSearchView = (EditText) findViewById(R.id.search_view);
-        searchClearButton = (ImageView) findViewById(R.id.search_clear);
+        searchContainer = (FrameLayout) findViewById(R.id.search_container);
+        bookTitle2 = (DelayAutoCompleteTextView) findViewById(R.id.et_book_title2);
+        bookTitle2.setThreshold(3);
+        bookTitle2.setAdapter(new BookAutoCompleteAdapter(this)); // 'this' is Activity instance
+        bookTitle2.setLoadingIndicator(
+                (android.widget.ProgressBar) findViewById(R.id.pb_loading_indicator2));
+        bookTitle2.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Book book = (Book) adapterView.getItemAtPosition(position);
+                bookTitle2.setText(book.getTitle());
+            }
+        });
+       // toolbarSearchView = (EditText) findViewById(R.id.search_view);
+        //searchClearButton = (ImageView) findViewById(R.id.search_clear);
 
 
         // Clear search text when clear button is tapped
-        searchClearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toolbarSearchView.setText("");
-            }
-        });
+        //searchClearButton.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+         //   public void onClick(View v) {
+           //     bookTitle2.setText("");
+         //   }
+        //});
 
         // Hide the search view
         searchContainer.setVisibility(View.GONE);
@@ -105,12 +121,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
 
-        searchClearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displaySearchView(false);
-            }
-        });
+        //searchClearButton.setOnClickListener(new View.OnClickListener() {
+         //   @Override
+         //   public void onClick(View v) {
+         //       displaySearchView(false);
+         //   }
+        //});
 
 
     }
@@ -125,16 +141,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             searchContainer.setVisibility(View.VISIBLE);
 
             // Animate the home icon to the back arrow
-           toggleActionBarIcon(ActionDrawableState.ARROW, mDrawerToggle, true);
+            toggleActionBarIcon(ActionDrawableState.ARROW, mDrawerToggle, true);
 
             // Shift focus to the search EditText
-            toolbarSearchView.requestFocus();
+            bookTitle2.requestFocus();
 
             // Pop up the soft keyboard
             new Handler().postDelayed(new Runnable() {
                 public void run() {
-                    toolbarSearchView.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 0, 0, 0));
-                    toolbarSearchView.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 0, 0, 0));
+                    bookTitle2.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 0, 0, 0));
+                    bookTitle2.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 0, 0, 0));
                 }
             }, 200);
         } else {
@@ -143,10 +159,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             // Hide the EditText and put the search button back on the Toolbar.
             // This sometimes fails when it isn't postDelayed(), don't know why.
-            toolbarSearchView.postDelayed(new Runnable() {
+            bookTitle2.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    toolbarSearchView.setText("");
+                    bookTitle2.setText("");
                     searchContainer.setVisibility(View.GONE);
                     menu.findItem(R.id.action_search).setVisible(true);
                 }
@@ -157,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             // Hide the keyboard because the search box has been hidden
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(toolbarSearchView.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(bookTitle2.getWindowToken(), 0);
         }
     }
 
@@ -253,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void initDrawer() {
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+        mDrawerToggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();

@@ -19,50 +19,40 @@
         <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/toolbar"
-            contentInsetLeft="72dp"
-            contentInsetStart="72dp"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:elevation="4dp"
             android:minHeight="?attr/actionBarSize"
-            app:contentInsetLeft="72dp"
-            app:contentInsetStart="72dp"
             local:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             local:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-            <LinearLayout
+
+            <FrameLayout
                 android:id="@+id/search_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:background="@android:color/transparent">
 
-                <EditText
-                    android:id="@+id/search_view"
-                    android:layout_width="0dp"
-                    android:layout_height="?attr/actionBarSize"
-                    android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:gravity="center_vertical"
-                    android:hint="Search"
-                    android:imeOptions="actionSearch"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:paddingLeft="2dp"
-                    android:singleLine="true"
-                    android:textColor="#ffffff"
-                    android:textColorHint="#b3ffffff" />
-
-                <ImageView
-                    android:id="@+id/search_clear"
+                <ProgressBar
+                    android:id="@+id/pb_loading_indicator2"
+                    style="?android:attr/progressBarStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp"
-                    android:src="@drawable/ic_close_black_24dp" />
-            </LinearLayout>
+                    android:layout_gravity="center_vertical|right"
+                    android:layout_marginRight="10dp"
+                    android:visibility="gone" />
+
+                <com.creative.customsearch.DelayAutoCompleteTextView
+                    android:id="@+id/et_book_title2"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:imeOptions="flagNoExtractUi|actionSearch"
+                    android:inputType="textCapSentences" />
+
+            </FrameLayout>
+
+
         </android.support.v7.widget.Toolbar>
 
 
