@@ -9,11 +9,14 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,7 +33,7 @@ import android.widget.TextView;
 
 import java.lang.reflect.Field;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
     private MSearchView mSearchView;
 
@@ -46,219 +49,99 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     LinearLayout searchContainer;
     EditText toolbarSearchView;
     ImageView searchClearButton;
+    ArrayAdapterSearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main2);
 
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
-        initDrawer();
-
-        final DelayAutoCompleteTextView bookTitle = (DelayAutoCompleteTextView) findViewById(R.id.et_book_title);
-        bookTitle.setThreshold(3);
-        bookTitle.setAdapter(new BookAutoCompleteAdapter(this)); // 'this' is Activity instance
-        bookTitle.setLoadingIndicator(
-                (android.widget.ProgressBar) findViewById(R.id.pb_loading_indicator));
-        bookTitle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Book book = (Book) adapterView.getItemAtPosition(position);
-                bookTitle.setText(book.getTitle());
-            }
-        });
-
-
-        searchContainer = (LinearLayout) findViewById(R.id.search_container);
-        toolbarSearchView = (EditText) findViewById(R.id.search_view);
-        searchClearButton = (ImageView) findViewById(R.id.search_clear);
-
-
-        // Clear search text when clear button is tapped
-        searchClearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toolbarSearchView.setText("");
-            }
-        });
-
-        // Hide the search view
-        searchContainer.setVisibility(View.GONE);
-
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // toolbarHomeButtonAnimating is a boolean that is initialized as false. It's used to stop the user pressing the home button while it is animating and breaking things.
-                if (!toolbarHomeButtonAnimating) {
-
-                }
-
-                if (drawer.isDrawerOpen(findViewById(R.id.nav_view)))
-                    drawer.closeDrawer(findViewById(R.id.nav_view));
-                else
-                    drawer.openDrawer(findViewById(R.id.nav_view));
-            }
-        });
-
-
-        searchClearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displaySearchView(false);
-            }
-        });
-
-
     }
 
-    public void displaySearchView(boolean visible) {
-        if (visible) {
-            // Stops user from being able to open drawer while searching
-            // mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
-            // Hide search button, display EditText
-            menu.findItem(R.id.action_search).setVisible(false);
-            searchContainer.setVisibility(View.VISIBLE);
-
-            // Animate the home icon to the back arrow
-           toggleActionBarIcon(ActionDrawableState.ARROW, mDrawerToggle, true);
-
-            // Shift focus to the search EditText
-            toolbarSearchView.requestFocus();
-
-            // Pop up the soft keyboard
-            new Handler().postDelayed(new Runnable() {
-                public void run() {
-                    toolbarSearchView.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, 0, 0, 0));
-                    toolbarSearchView.dispatchTouchEvent(MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, 0, 0, 0));
-                }
-            }, 200);
-        } else {
-            // Allows user to open drawer again
-            //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-
-            // Hide the EditText and put the search button back on the Toolbar.
-            // This sometimes fails when it isn't postDelayed(), don't know why.
-            toolbarSearchView.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    toolbarSearchView.setText("");
-                    searchContainer.setVisibility(View.GONE);
-                    menu.findItem(R.id.action_search).setVisible(true);
-                }
-            }, 200);
-
-            // Turn the home button back into a drawer icon
-            toggleActionBarIcon(ActionDrawableState.BURGER, mDrawerToggle, true);
-
-            // Hide the keyboard because the search box has been hidden
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(toolbarSearchView.getWindowToken(), 0);
-        }
-    }
+    private MenuItem mSearchAction;
+    private boolean isSearchOpened = false;
+    private DelayAutoCompleteTextView edtSeach;
 
     @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        return false;
-    }
-
-    private enum ActionDrawableState {
-        BURGER, ARROW
-    }
-
-    /**
-     * Modified version of this, https://stackoverflow.com/a/26836272/1692770<br>
-     * I flipped the start offset around for the animations because it seemed like it was the wrong way around to me.<br>
-     * I also added a listener to the animation so I can find out when the home button has finished rotating.
-     */
-    private void toggleActionBarIcon(final ActionDrawableState state, final ActionBarDrawerToggle toggle, boolean animate) {
-        if (animate) {
-            float start = state == ActionDrawableState.BURGER ? 1.0f : 0f;
-            float end = Math.abs(start - 1);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                ValueAnimator offsetAnimator = ValueAnimator.ofFloat(start, end);
-                offsetAnimator.setDuration(300);
-                offsetAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
-                offsetAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        float offset = (Float) animation.getAnimatedValue();
-                        toggle.onDrawerSlide(null, offset);
-                    }
-                });
-                offsetAnimator.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        toolbarHomeButtonAnimating = false;
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-
-                    }
-                });
-                toolbarHomeButtonAnimating = true;
-                offsetAnimator.start();
-            }
-        } else {
-            if (state == ActionDrawableState.BURGER) {
-                toggle.onDrawerClosed(null);
-            } else {
-                toggle.onDrawerOpened(null);
-            }
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onPrepareOptionsMenu(Menu menu) {
         this.menu = menu;
-        // Inflate the menu; this adds items to the action bar if it is present.
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-
-
-        return super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        mSearchAction = menu.findItem(R.id.action_search);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            displaySearchView(true);
-            return true;
+        switch (id) {
+            case R.id.action_search:
+                handleMenuSearch();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    protected void handleMenuSearch(){
+        ActionBar action = getSupportActionBar(); //get the actionbar
 
-    private void initDrawer() {
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(mDrawerToggle);
-        mDrawerToggle.syncState();
+        if(isSearchOpened){ //test if the search is open
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+            action.setDisplayShowCustomEnabled(false); //disable a custom view inside the actionbar
+            action.setDisplayShowTitleEnabled(true); //show the title in the action bar
+
+            //hides the keyboard
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(edtSeach.getWindowToken(), 0);
+
+            //add the search icon in the action bar
+            mSearchAction.setIcon(getResources().getDrawable(R.mipmap.ic_launcher));
+
+            isSearchOpened = false;
+        } else { //open the search entry
+
+            action.setDisplayShowCustomEnabled(true); //enable it to display a
+            // custom view in the action bar.
+            action.setCustomView(R.layout.test);//add the custom view
+            action.setDisplayShowTitleEnabled(false); //hide the title
+
+            edtSeach = (DelayAutoCompleteTextView) action.getCustomView().findViewById(R.id.menu_search); //the text editor
+
+            edtSeach.setThreshold(3);
+            edtSeach.setAdapter(new BookAutoCompleteAdapter(this)); // 'this' is Activity instance
+            edtSeach.setLoadingIndicator(
+                    (android.widget.ProgressBar) findViewById(R.id.pb_loading_indicator));
+            edtSeach.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                    Book book = (Book) adapterView.getItemAtPosition(position);
+                    edtSeach.setText(book.getTitle());
+                }
+            });
+
+
+
+
+            edtSeach.requestFocus();
+
+            //open the keyboard focused in the edtSearch
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(edtSeach, InputMethodManager.SHOW_IMPLICIT);
+
+
+            //add the close icon
+            mSearchAction.setIcon(getResources().getDrawable(R.drawable.ic_close_black_24dp));
+
+            isSearchOpened = true;
+        }
     }
+
+
 }

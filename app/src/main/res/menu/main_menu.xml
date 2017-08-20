@@ -5,7 +5,6 @@
         android:id="@+id/action_search"
         android:icon="@android:drawable/ic_menu_search"
         android:title="Search"
-        android:actionViewClass="com.creative.customsearch.MSearchView"
         app:showAsAction="always" />
 
 </menu>
