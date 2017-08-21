@@ -156,6 +156,7 @@ public class BookAutoCompleteAdapter extends BaseAdapter implements Filterable {
             @Override
             public void onErrorResponse(VolleyError error) {
                 listener.onFailure(error);
+                Log.d("DEBUG","error");
 
             }
         });

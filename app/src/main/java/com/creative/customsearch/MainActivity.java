@@ -1,37 +1,20 @@
 package com.creative.customsearch;
 
-import android.animation.Animator;
-import android.animation.ValueAnimator;
-import android.app.SearchManager;
 import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
-import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.MenuItemCompat;
+import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SearchView;
-import android.widget.TextView;
-
-import java.lang.reflect.Field;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -117,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
             edtSeach.setThreshold(3);
             edtSeach.setAdapter(new BookAutoCompleteAdapter(this)); // 'this' is Activity instance
             edtSeach.setLoadingIndicator(
-                    (android.widget.ProgressBar) findViewById(R.id.pb_loading_indicator));
+                    (android.widget.ProgressBar) findViewById(R.id.loading_indicator));
             edtSeach.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {

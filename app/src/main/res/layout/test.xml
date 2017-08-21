@@ -17,6 +17,9 @@
         android:dropDownVerticalOffset="16.0dip"
         android:dropDownWidth="fill_parent"
         android:hint="Search"
+        android:textCursorDrawable="@null"
+        android:textColor="@color/white"
+        android:background="@android:color/transparent"
         android:imeOptions="actionSearch|flagNoExtractUi"
         android:inputType="textCapSentences"
         android:paddingRight="2dp" />
@@ -29,5 +32,8 @@
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:layout_marginLeft="5dp"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:indeterminate="true"
+        android:indeterminateTintMode="src_atop"
+        android:indeterminateTint="@color/white"/>
 </RelativeLayout>
